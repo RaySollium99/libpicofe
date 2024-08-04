@@ -961,15 +961,6 @@ static int scandir_filter(const struct dirent *ent)
 		return 1;
 	}
 
-	ext = strrchr(ent->d_name, '.');
-	if (ext == NULL)
-		return 0;
-
-	ext++;
-	for (i = 0; filter[i] != NULL; i++)
-		if (strcasecmp(ext, filter[i]) == 0)
-			return 1;
-
 	return 1;
 }
 
