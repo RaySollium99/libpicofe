@@ -970,7 +970,7 @@ static int scandir_filter(const struct dirent *ent)
 		if (strcasecmp(ext, filter[i]) == 0)
 			return 1;
 
-	return 0;
+	return 1;
 }
 
 static int dirent_seek_char(struct dirent **namelist, int len, int sel, char c)
