@@ -10,6 +10,7 @@
  */
 
 #include <stdio.h>
+#include <stdint.h>
 #include <SDL.h>
 #include <SDL_syswm.h>
 
@@ -107,7 +108,7 @@ int plat_sdl_change_video_mode(int w, int h, int force)
     int W = plat_target.vout_method == vout_mode_overlay2x && w < 640 ? 2*w : w;
     plat_sdl_overlay = SDL_CreateYUVOverlay(W, h, SDL_UYVY_OVERLAY, plat_sdl_screen);
     if (plat_sdl_overlay != NULL && SDL_LockYUVOverlay(plat_sdl_overlay) == 0) {
-      if ((long)plat_sdl_overlay->pixels[0] & 3)
+      if ((uintptr_t)plat_sdl_overlay->pixels[0] & 3)
         fprintf(stderr, "warning: overlay pointer is unaligned\n");
 
       plat_sdl_overlay_clear();
@@ -144,7 +145,8 @@ int plat_sdl_change_video_mode(int w, int h, int force)
       flags |= SDL_FULLSCREEN;
       win_w = fs_w;
       win_h = fs_h;
-    }
+    } else if (window_b)
+      flags |= SDL_RESIZABLE;
 
     SDL_PumpEvents();
 
@@ -173,12 +175,12 @@ void plat_sdl_event_handler(void *event_)
   switch (event->type) {
   case SDL_VIDEORESIZE:
     //printf("resize %dx%d\n", event->resize.w, event->resize.h);
-    if (plat_target.vout_method != 0
-        && !plat_target.vout_fullscreen && !old_fullscreen)
+    if ((plat_target.vout_method != 0 || window_b) &&
+        !plat_target.vout_fullscreen && !old_fullscreen)
     {
       window_w = event->resize.w & ~3;
       window_h = event->resize.h & ~3;
-      plat_sdl_change_video_mode(0, 0, 1);
+      plat_sdl_change_video_mode(window_w, window_h, 1);
     }
     break;
   case SDL_ACTIVEEVENT:
@@ -377,4 +379,8 @@ void plat_sdl_overlay_clear(void)
     *dst = v;
 }
 
+int plat_sdl_is_windowed(void)
+{
+  return window_b != 0;
+}
 // vim:shiftwidth=2:expandtab
